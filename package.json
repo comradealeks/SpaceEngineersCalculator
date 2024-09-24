@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "msnodesqlv8": "^4.2.1",
+    "mssql": "^11.0.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.11.2"
+  },
+  "name": "spaceengineerscalculator",
+  "version": "1.0.0",
+  "description": "* A page where you can sort and look for any block in the game with dlcs. * A page for adding new blocks  * A list of base resources",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./scripts/ConnectToDatabase.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
