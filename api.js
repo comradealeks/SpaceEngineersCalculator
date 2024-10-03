@@ -41,6 +41,17 @@ function convertIconToBase64(blocks) {
     });
 }
 
+// API Route to fetch all distinct TypeIDs
+app.get('/types', async (req, res) => {
+    try {
+        await connectToDatabase();
+        const result = await sql.query`SELECT DISTINCT TypeID FROM BlockInfo`;
+        res.json(result.recordset);
+    } catch (error) {
+        res.status(500).send('Error fetching types');
+    }
+});
+
 // API Route to fetch all FileNames (categories)
 app.get('/files', async (req, res) => {
     try {
@@ -54,18 +65,19 @@ app.get('/files', async (req, res) => {
 
 // API Route to fetch all blocks or blocks by FileName
 app.get('/blocks', async (req, res) => {
-    const { filename } = req.query;
+    const { filename, type } = req.query;
     try {
         await connectToDatabase();
-        
+
         let query;
         const request = new sql.Request();
 
-        if (!filename || filename == 'all') {
-            // Fetch all blocks if filename is not provided or is "all"
+        if (type) {
+            query = 'SELECT * FROM BlockInfo WHERE TypeID = @type';
+            request.input('type', sql.NVarChar, type); // Bind the type parameter
+        } else if (!filename || filename == 'all') {
             query = 'SELECT * FROM BlockInfo';
         } else {
-            // Fetch blocks by filename
             query = 'SELECT * FROM BlockInfo WHERE FileName = @filename';
             request.input('filename', sql.NVarChar, filename); // Bind the filename parameter
         }
@@ -105,11 +117,17 @@ app.get('/block/:id', async (req, res) => {
 });
 
 // API Route to fetch block components by BlockID
-app.get('/block/:DisplayName/components', async (req, res) => {
+app.get('/block/:DisplayName/:Grid/components', async (req, res) => {
     const { DisplayName } = req.params;
+    const { Grid } = req.params;
     try {
         await connectToDatabase();
-        const result = await sql.query`SELECT ComponentName, Quantity FROM ComponentList WHERE DisplayName = ${DisplayName}`;
+        const result = await sql.query`
+            SELECT ComponentName, Quantity 
+            FROM ComponentList 
+            WHERE DisplayName = ${DisplayName} 
+            AND CubeSize IN (SELECT CubeSize FROM BlockInfo WHERE DisplayName = ${DisplayName} AND CubeSize = ${Grid})
+        `;
         if (result.recordset.length === 0) {
             return res.status(404).send('No components found for this block');
         }

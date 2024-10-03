@@ -9,12 +9,15 @@
   "name": "spaceengineerscalculator",
   "version": "1.0.0",
   "description": "* A page where you can sort and look for any block in the game with dlcs. * A page for adding new blocks  * A list of base resources",
-  "main": "app.js",
+  "main": "api.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./scripts/ConnectToDatabase.js"
+    "start": "nodemon --ext js,css,html ./api.js"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
 }
