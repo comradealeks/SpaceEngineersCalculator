@@ -77,6 +77,10 @@ function displayBlocks(blocks) {
                 ${hasAlternativeSize ? `<div>${block.CubeSize} Grid</div>` : ''}
             `;
             blockElement.addEventListener('click', () => displayBlockDetails(block.BlockID, block.DisplayName));
+            blockElement.addEventListener('contextmenu', (event) => {
+                event.preventDefault(); // Prevent the default context menu
+                BottomList(block.BlockID, block.CubeSize, true);
+            });
             blockGrid.appendChild(blockElement);
         });
 }

@@ -125,17 +125,25 @@ body {
 #bottom-bar {
     position: fixed;
     bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
+    width: 100%; /* Full width across the bottom */
+    display: flex;
+    flex-direction: column; /* Stack the top content and expandable content */
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    z-index: 100;
+    border-radius: 5px 5px 0 0; /* Rounded corners at the top */
+    overflow: hidden; /* Hide content that overflows when collapsed */
+    transition: height 0.5s ease; /* Smooth transition when expanding/collapsing */
+}
+
+#bottom-bar-top-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
     background-color: #333;
     color: white;
     padding: 10px;
-    z-index: 100;
-    border-radius: 5px;
 }
 
 #bottom-bar-left, #bottom-bar-right {
@@ -161,15 +169,13 @@ body {
 }
 
 #bottom-expanded-content {
+    height: 50px; /* Hidden by default */
     overflow: hidden;
-    transition: height 0.5s ease;
-}
-#bottom-expanded-content {
     display: flex;
     flex-wrap: wrap;
     padding: 10px;
     background-color: #f0f0f0;
-    transition: height 0.5s ease;
+    transition: height 0.5s ease; /* Smooth transition for height */
 }
 
 .bottom-bar-block {
@@ -197,12 +203,13 @@ body {
 
 /* Toggle expanded content */
 .expanded #bottom-expanded-content {
-    display: block;
+    height: 91vh; /* Set the desired height when expanded */
 }
 
 .expanded #bottom-bar-arrow span {
     transform: rotate(180deg); /* Rotate the arrow to point down */
 }
+
 
 /* Adjustments for Responsiveness */
 @media (max-width: 768px) {

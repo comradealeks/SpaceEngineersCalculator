@@ -6,3 +6,4 @@
 6. add blueprint blocks and components.
 7. calculate size and stuff
 8. make look actually good. 
+9. sizes on the elements on screen
