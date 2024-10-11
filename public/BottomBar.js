@@ -1,4 +1,7 @@
 const BottomListArray = [];
+const ComponentsList = [
+
+];
 
 //Adds any block that is right clicked into the array
 function BottomList(BlockName, BlockGrid, Action) {
@@ -24,6 +27,7 @@ function BottomList(BlockName, BlockGrid, Action) {
         BottomListArray.push([BlockName, BlockGrid, 1])
     };
     BottomListBlocks()
+    BottomListComponents()
 }
 
 //function 1: gets block details:
@@ -36,10 +40,10 @@ function BottomListBlocks(){
 
 
             const BottomBlockElement = document.createElement('div');
-            BottomBlockElement.classList.add('block');
+            BottomBlockElement.classList.add('bottom-bar-block');
 
             BottomBlockElement.innerHTML = `
-                <img src="data:image/png;base64,${block.Icon}">
+                <img img" src="data:image/png;base64,${block.Icon}">
                 <div>${formatDisplayName(block.DisplayName)}</div>
             `;
             BottomBlockElement.addEventListener('click', () => displayBlockDetails(block.BlockID, block.DisplayName));
@@ -54,7 +58,9 @@ function BottomListBlocks(){
 
 
 //function 2: gets all components together:
+function BottomListComponents() {
 
+}
 
 
 

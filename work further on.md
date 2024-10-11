@@ -7,3 +7,4 @@
 7. calculate size and stuff
 8. make look actually good. 
 9. sizes on the elements on screen
+10. plush has problem it seems with components
