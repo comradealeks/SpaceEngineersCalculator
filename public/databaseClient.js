@@ -16,6 +16,7 @@ const fetchBlocksByFileName = (fileName) => fetchData(`/blocks?filename=${encode
 const fetchAllBlocks = () => fetchData('/blocks');
 const fetchBlockDetails = (blockId) => fetchData(`/block/${blockId}`);
 const fetchBlockComponents = (displayName, grid) => fetchData(`/block/${displayName}/${grid}/components`);
+const fetchComponentDetails = (componentName) => fetchData(`/component/${encodeURIComponent(componentName)}`);
 
 // Format display names for readability
 function formatDisplayName(displayName) {
@@ -79,7 +80,7 @@ function displayBlocks(blocks) {
             blockElement.addEventListener('click', () => displayBlockDetails(block.BlockID, block.DisplayName));
             blockElement.addEventListener('contextmenu', (event) => {
                 event.preventDefault(); // Prevent the default context menu
-                BottomList(block.BlockID, block.CubeSize, true);
+                BottomListBlocks(block.BlockID, block.CubeSize, true);
             });
             blockGrid.appendChild(blockElement);
         });

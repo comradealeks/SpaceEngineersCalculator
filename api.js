@@ -138,6 +138,39 @@ app.get('/block/:DisplayName/:Grid/components', async (req, res) => {
     }
 });
 
+// API Route to fetch component details by ComponentName
+app.get('/component/:name', async (req, res) => {
+    const { name } = req.params;
+    const searchTerm = `%${name}%`; // Add wildcards for LIKE query
+
+    try {
+        await connectToDatabase();
+        const result = await sql.query`
+            SELECT ComponentName, Icon 
+            FROM Components 
+            WHERE ComponentName LIKE ${searchTerm}`;
+
+        if (result.recordset.length === 0) {
+            return res.status(404).send('Component not found');
+        }
+
+        const component = result.recordset[0];
+
+        // Convert binary data to base64 if needed
+        if (component.Icon) {
+            component.Icon = Buffer.from(component.Icon, 'binary').toString('base64');
+        }
+        
+        res.json(component);
+    } catch (error) {
+        console.error('Error fetching component details:', error);
+        res.status(500).send('Error fetching component details');
+    }
+});
+
+
+
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}/`);
