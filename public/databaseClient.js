@@ -15,6 +15,7 @@ const fetchFileNames = () => fetchData('/files');
 const fetchBlocksByFileName = (fileName) => fetchData(`/blocks?filename=${encodeURIComponent(fileName)}`);
 const fetchAllBlocks = () => fetchData('/blocks');
 const fetchBlockDetails = (blockId) => fetchData(`/block/${blockId}`);
+const fetchBlockDetailsBySubtype = (subtypeId) => fetchData(`/block/subtype/${encodeURIComponent(subtypeId)}`);
 const fetchBlockComponents = (displayName, grid) => fetchData(`/block/${displayName}/${grid}/components`);
 const fetchComponentDetails = (componentName) => fetchData(`/component/${encodeURIComponent(componentName)}`);
 
@@ -80,7 +81,7 @@ function displayBlocks(blocks) {
             blockElement.addEventListener('click', () => displayBlockDetails(block.BlockID, block.DisplayName));
             blockElement.addEventListener('contextmenu', (event) => {
                 event.preventDefault(); // Prevent the default context menu
-                BottomListBlocks(block.BlockID, block.CubeSize, true);
+                updateBottomList(block.DisplayName, block.CubeSize, true, block.BlockID);
             });
             blockGrid.appendChild(blockElement);
         });
@@ -99,10 +100,12 @@ function displayBlockDetails(blockId, displayName) {
             <h3>Components Needed:</h3>
             <ul id="components-list"></ul>
         `;
+
+        // Now use fetchBlockComponents to get components or use pre-fetched block data from BottomList if available
         fetchBlockComponents(displayName, block.CubeSize)
             .then(components => {
                 const componentsList = document.getElementById('components-list');
-                componentsList.innerHTML = components.map(c => `<li>${c.ComponentName}: ${c.Quantity}</li>`).join('');
+                componentsList.innerHTML = components.map(c => `<li>${formatDisplayName(c.ComponentName)}: ${c.Quantity}</li>`).join('');
             })
             .catch(error => {
                 console.error('Error fetching block components:', error);
@@ -133,7 +136,6 @@ document.querySelectorAll('#large-blocks, #small-blocks').forEach(checkbox => {
             .catch(error => console.error('Error reloading blocks after filter change:', error));
     });
 });
-
 
 // Initial page load setup
 document.addEventListener('DOMContentLoaded', () => {

@@ -15,6 +15,7 @@ async function handleBlueprintUpload(file) {
 
         const blockCounts = getBlockCountsAndPositions(xmlDoc);
         console.log("Block counts by subtype:", blockCounts);
+        AddBPToBottomList(blockCounts);
 
         visualizeBlockPositions();
     };
@@ -49,7 +50,8 @@ function getBlockCountsAndPositions(xmlDoc) {
     }
     // Calculate axis range once during the extraction
     calculateAxisRange(positions);
-    return blockCounts;
+    const blockArray = Object.entries(blockCounts).map(([subtype, count]) => ({ subtype, count }));
+    return blockArray;
 }
 
 // Part 2: Visualize block positions in 2D with different viewpoints and layered mode

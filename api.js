@@ -116,6 +116,25 @@ app.get('/block/:id', async (req, res) => {
     }
 });
 
+// API Route to fetch block details by SubtypeID
+app.get('/block/subtype/:subtypeId', async (req, res) => {
+    const { subtypeId } = req.params;
+    try {
+        await connectToDatabase();
+        const result = await sql.query`SELECT * FROM BlockInfo WHERE SubtypeID = ${subtypeId}`;
+        if (result.recordset.length === 0) {
+            return res.status(404).send('Block not found for the given SubtypeID');
+        }
+
+        // Convert Icon binary data to base64 for the single block
+        const block = convertIconToBase64(result.recordset)[0];
+        res.json(block);
+    } catch (error) {
+        console.error('Error fetching block details by SubtypeID:', error);
+        res.status(500).send('Error fetching block details by SubtypeID');
+    }
+});
+
 // API Route to fetch block components by BlockID
 app.get('/block/:DisplayName/:Grid/components', async (req, res) => {
     const { DisplayName } = req.params;

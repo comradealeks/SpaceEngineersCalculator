@@ -1,123 +1,159 @@
-// Arrays to store block and component data
-var BottomListArray = [];
-var ComponentsListArray = [];
+var BottomList = [];
 var activeButton = null;
 
 // Entry function to determine what to display in the bottom list
 function CompOrBlock() {
     const selectedList = checkActiveButton();
-    if (activeButton === "components-button") {
-        // Display components if the "Components" button is active
-        BottomListComponents().then(components => {
-            BottomListDisplay(components, true); // Pass 'true' to indicate it's a component list
-        });
-    } else {
-        // Otherwise, display blocks
-        BottomListDisplay(selectedList, false); // Pass 'false' to indicate it's a block list
-    }
+    BottomListDisplay(selectedList, activeButton == "components-button");
 }
 
-//Adds any block that is right clicked into the array
-function BottomListBlocks(BlockName, BlockGrid, Action) {
-    let IsNew = true;
-    //go through every list item until end or until you find a similar one.
-    BottomListArray.forEach((Block, index) => {
-        //If block is found:
-        if (Block[0] == BlockName && Block[1] == BlockGrid) {
-            //Add or remove one
+// Adds or removes a block and its components 
+async function updateBottomList(BlockName, BlockGrid, Action, BlockID) {
+    let blockExists = false;
+
+    // Go through every list item until end or until you find a similar block
+    for (let i = 0; i < BottomList.length; i++) {
+        let block = BottomList[i];
+        if (block.name == BlockName && block.grid == BlockGrid) {
+            // If the block exists, update the quantity
             if (Action) {
-                Block[2] = Block[2] + 1; 
-            } else if (!Action) {
-                Block[2] = Block[2] - 1; 
+                block.quantity += 1;
+            } else {
+                block.quantity -= 1;
             }
 
-            //If less or equal to zero delete 
-            if (Block[2] <= 0) {BottomListArray.splice(index, 1);};
-            IsNew = false;
-        };
-    });
-    //If not in list, push it in like: [[block, grid, number]]
-    if (Action == 1 && IsNew) {
-        BottomListArray.push([BlockName, BlockGrid, 1])
-    };
-    CompOrBlock()
+            // If the quantity is <= 0, remove the block from the list
+            if (block.quantity <= 0) {
+                console.log(`Removing block: ${BlockName}`);
+                BottomList.splice(i, 1);
+            }
+            blockExists = true;
+            break;
+        }
+    }
+
+    // If the block is not in the list, fetch its components and add it
+    if (Action == 1 && !blockExists) {   
+        try {
+            const components = await fetchBlockComponents(BlockName, BlockGrid);
+            const blockDetails = await fetchBlockDetails(BlockID);
+            
+            BottomList.push({
+                name: BlockName,
+                grid: BlockGrid,
+                quantity: 1,
+                blockId: blockDetails.BlockID, // Store the BlockID
+                components: components.map(c => ({
+                    name: c.ComponentName,
+                    quantity: c.Quantity
+                }))
+            });
+        } catch (error) {
+            console.error(`Error fetching components for block ${BlockName}:`, error);
+        }
+    }
+    CompOrBlock();
+}
+
+async function AddBPToBottomList(blockCounts) {
+    BottomList = [];
+    for (let id = 0; id < blockCounts.length; id++) {
+        console.log(blockCounts[id].subtype)
+        const blockDetails = await fetchBlockDetailsBySubtype(blockCounts[id].subtype);
+        const components = await fetchBlockComponents(blockDetails.DisplayName, blockDetails.CubeSize);
+        
+        BottomList.push({
+            name: blockDetails.DisplayName,
+            grid: blockDetails.CubeSize,
+            quantity: blockCounts[id].count,
+            blockId: blockDetails.BlockID, // Store the BlockID
+            components: components.map(c => ({
+                name: c.ComponentName,
+                quantity: c.Quantity
+            }))
+        });
+    }
+    CompOrBlock() 
+
 }
 
 // Checks which button is active and returns the corresponding list
 function checkActiveButton() {
-    return activeButton === "components-button" ? ComponentsListArray : BottomListArray;
+    return activeButton == "components-button" ? getComponentsFromBottomList() : BottomList;
 }
 
-// Fetches and displays the block or component list in the bottom section
+// Extracts all components from blocks in the bottom list
+function getComponentsFromBottomList() {
+    let components = [];
+    
+    BottomList.forEach(block => {
+        // Iterate through the block's components according to the block's quantity
+        for (let i = 0; i < block.quantity; i++) {
+            block.components.forEach(component => {
+                const existingComponent = components.find(c => c.name === component.name);
+                if (existingComponent) {
+                    existingComponent.quantity += component.quantity;
+                } else {
+                    components.push({ name: component.name, quantity: component.quantity });
+                }
+            });
+        }
+    });
+    return components;
+}
+
+// Refactor BottomListDisplay function
 function BottomListDisplay(list, isComponentList) {
     const ExpandedContentSection = document.getElementById('bottom-expanded-content');
+    
+    // Clear previous content
     ExpandedContentSection.innerHTML = '';
 
-    list.forEach((entity) => {
+    // Check if the list is empty
+    if (list.length == 0) {
+        console.log("No items to display in the bottom list.");
+        return;
+    }
+    // Iterate over the list and append elements
+    list.forEach(entity => {
         const fetchDetails = isComponentList 
-            ? fetchComponentDetails(entity[0]) 
-            : fetchBlockDetails(entity[0]);
+            ? fetchComponentDetails(entity.name)
+            : fetchBlockDetails(entity.blockId); 
 
         fetchDetails.then(item => {
-            const BottomBlockElement = createBottomListElement(item, isComponentList);
-            ExpandedContentSection.appendChild(BottomBlockElement);
-        }).catch(error => console.error('Error fetching details:', error));
+            const BottomBlockElement = createBottomListElement(item, entity.quantity, isComponentList, entity.blockId, entity.name);
+            ExpandedContentSection.appendChild(BottomBlockElement); // Append to DOM
+        }).catch(error => {
+            console.error('Error fetching details:', error); // Log errors
+        });
     });
 }
 
-// Creates an element for the bottom list, either for a block or a component
-function createBottomListElement(item, isComponentList) {
+
+
+// Ensure the createBottomListElement correctly handles the display
+function createBottomListElement(item, quantity, isComponentList, blockId, name) {
     const BottomBlockElement = document.createElement('div');
     BottomBlockElement.classList.add('bottom-bar-block');
 
-    const icon = isComponentList ? item.Icon : item.Icon; // Adjust if needed
     const displayName = isComponentList ? item.ComponentName : item.DisplayName;
+    const displayText = `${formatDisplayName(displayName)}: ${quantity}`; // Format name and quantity
 
+    // Create the HTML structure for each block/component
     BottomBlockElement.innerHTML = `
-        <img src="data:image/png;base64,${icon}">
-        <div>${formatDisplayName(displayName)}</div>
+        <img src="data:image/png;base64,${item.Icon}" alt="${displayName}">
+        <div>${displayText}</div>
     `;
 
-    // Attach event listeners for click and contextmenu actions
-    BottomBlockElement.addEventListener('click', () => displayBlockDetails(item.BlockID, displayName));
+    // Handle block-specific actions (only if it's a block, not a component)
     if (!isComponentList) {
         BottomBlockElement.addEventListener('contextmenu', (event) => {
-            event.preventDefault();
-            BottomListBlocks(item.BlockID, item.CubeSize, false);
+            event.preventDefault(); // Prevent default context menu
+            updateBottomList(name, item.CubeSize, false, blockId); // Remove block on right-click
         });
     }
 
     return BottomBlockElement;
-}
-
-// Fetches and aggregates all components for blocks in the bottom list
-async function BottomListComponents() {
-    ComponentsListArray = [];
-
-    for (const entity of BottomListArray) {
-        const blockId = entity[0];
-        try {
-            const block = await fetchBlockDetails(blockId);
-            const { DisplayName, CubeSize } = block;
-            const components = await fetchBlockComponents(DisplayName, CubeSize);
-
-            components.forEach(component => {
-                const existingComponent = ComponentsListArray.find(
-                    (item) => item[0] === component.ComponentName
-                );
-
-                if (existingComponent) {
-                    existingComponent[1] += component.Quantity;
-                } else {
-                    ComponentsListArray.push([component.ComponentName, component.Quantity]);
-                }
-            });
-        } catch (error) {
-            console.error('Error fetching block details or components:', error);
-        }
-    }
-
-    return ComponentsListArray;
 }
 
 // Handles setting the active button and toggling the active state class
@@ -131,12 +167,10 @@ function setActiveButton(activeId, inactiveId) {
 // Event listeners for buttons
 document.getElementById("blocks-button").addEventListener("click", () => {
     setActiveButton("blocks-button", "components-button");
-    console.log("Blocks button is active");
 });
 
 document.getElementById("components-button").addEventListener("click", () => {
     setActiveButton("components-button", "blocks-button");
-    console.log("Components button is active");
 });
 
 // Toggle the bottom bar expansion
