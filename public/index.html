@@ -34,11 +34,8 @@
                 </div>
             </div>
 
-            <div id="block-details-container">
-                <div id="block-details">
-                    <!-- Block details will be displayed here -->
-                </div>
-
+            <!-- Blueprint Upload, View, and Block Details (Moved to top-right) -->
+            <div id="top-right-container">
                 <div id="blueprint-section">
                     <h3>Blueprint Upload and View</h3>
                     <input type="file" id="blueprint-file-input" accept=".sbc">
@@ -50,9 +47,10 @@
                         <option value="front">Front</option>
                         <option value="top">Top</option>
                     </select>
+                </div>
 
-                    <h3>Blueprint Visualization</h3>
-                    <canvas id="blueprint-canvas" width="650" height="400"></canvas>
+                <div id="block-details">
+                    <!-- Block details will be displayed here -->
                 </div>
             </div>
         </div>
@@ -80,6 +78,8 @@
         </div>
     </div>
 
+    <!-- Blueprint Canvas in Background -->
+    <canvas id="blueprint-canvas" width="650" height="400"></canvas>
 
 </body>
 </html>

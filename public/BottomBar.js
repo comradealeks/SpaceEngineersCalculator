@@ -42,7 +42,7 @@ async function updateBottomList(BlockName, BlockGrid, Action, BlockID) {
                 name: BlockName,
                 grid: BlockGrid,
                 quantity: 1,
-                blockId: blockDetails.BlockID, // Store the BlockID
+                blockId: blockDetails.BlockID, 
                 components: components.map(c => ({
                     name: c.ComponentName,
                     quantity: c.Quantity
@@ -66,7 +66,7 @@ async function AddBPToBottomList(blockCounts) {
             name: blockDetails.DisplayName,
             grid: blockDetails.CubeSize,
             quantity: blockCounts[id].count,
-            blockId: blockDetails.BlockID, // Store the BlockID
+            blockId: blockDetails.BlockID,
             components: components.map(c => ({
                 name: c.ComponentName,
                 quantity: c.Quantity
@@ -102,7 +102,7 @@ function getComponentsFromBottomList() {
     return components;
 }
 
-// Refactor BottomListDisplay function
+// function to display blocks and components
 function BottomListDisplay(list, isComponentList) {
     const ExpandedContentSection = document.getElementById('bottom-expanded-content');
     
@@ -122,14 +122,12 @@ function BottomListDisplay(list, isComponentList) {
 
         fetchDetails.then(item => {
             const BottomBlockElement = createBottomListElement(item, entity.quantity, isComponentList, entity.blockId, entity.name);
-            ExpandedContentSection.appendChild(BottomBlockElement); // Append to DOM
+            ExpandedContentSection.appendChild(BottomBlockElement); 
         }).catch(error => {
-            console.error('Error fetching details:', error); // Log errors
+            console.error('Error fetching details:', error); 
         });
     });
 }
-
-
 
 // Ensure the createBottomListElement correctly handles the display
 function createBottomListElement(item, quantity, isComponentList, blockId, name) {
@@ -137,7 +135,7 @@ function createBottomListElement(item, quantity, isComponentList, blockId, name)
     BottomBlockElement.classList.add('bottom-bar-block');
 
     const displayName = isComponentList ? item.ComponentName : item.DisplayName;
-    const displayText = `${formatDisplayName(displayName)}: ${quantity}`; // Format name and quantity
+    const displayText = `${formatDisplayName(displayName)}: ${quantity}`; 
 
     // Create the HTML structure for each block/component
     BottomBlockElement.innerHTML = `
@@ -148,8 +146,8 @@ function createBottomListElement(item, quantity, isComponentList, blockId, name)
     // Handle block-specific actions (only if it's a block, not a component)
     if (!isComponentList) {
         BottomBlockElement.addEventListener('contextmenu', (event) => {
-            event.preventDefault(); // Prevent default context menu
-            updateBottomList(name, item.CubeSize, false, blockId); // Remove block on right-click
+            event.preventDefault();
+            updateBottomList(name, item.CubeSize, false, blockId); 
         });
     }
 
@@ -161,8 +159,21 @@ function setActiveButton(activeId, inactiveId) {
     activeButton = activeId;
     document.getElementById(activeId).classList.add("active");
     document.getElementById(inactiveId).classList.remove("active");
-    CompOrBlock(); // Refresh the display when the active button changes
+    CompOrBlock();
 }
+
+// Function to sort the BottomList by name alphabetically
+function sortBottomList() {
+    console.log(BottomList);
+    BottomList.sort((a, b) => {
+        const nameA = a.name.toLowerCase();
+        const nameB = b.name.toLowerCase();
+        if (nameA < nameB) return -1;
+        if (nameA > nameB) return 1;
+        return 0;
+    });
+}
+
 
 // Event listeners for buttons
 document.getElementById("blocks-button").addEventListener("click", () => {
@@ -173,7 +184,30 @@ document.getElementById("components-button").addEventListener("click", () => {
     setActiveButton("components-button", "blocks-button");
 });
 
+// Event listener for search input to filter results
+document.getElementById('bottom-bar-search').addEventListener('input', () => {
+    // Re-display the list when the search query changes
+    const selectedList = checkActiveButton();
+    BottomListDisplay(selectedList, activeButton == "components-button");
+});
+
 // Toggle the bottom bar expansion
 document.getElementById('bottom-bar-arrow').addEventListener('click', function() {
-    document.getElementById('bottom-bar').classList.toggle('expanded');
+    const bottomBar = document.getElementById('bottom-bar');
+    bottomBar.classList.toggle('expanded');
+
+    // Wait for the CSS transition to finish before scrolling (e.g., 500ms to match CSS transition time)
+    setTimeout(() => {
+        if (bottomBar.classList.contains('expanded')) {
+            bottomBar.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+    }, 500);
 });
+
+// Event listener for sort button to sort the list
+document.getElementById('sort-button').addEventListener('click', () => {
+    sortBottomList();
+    CompOrBlock(); 
+});
+
+
